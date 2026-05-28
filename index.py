@@ -2,6 +2,7 @@ import os # python access to files/folders
 import sys # python can read terminal arguments
 
 from sentence_transformers import SentenceTransformer # library to convert text into vectors
+import numpy as np
 
 SUPPORT_EXTENSION = [".py", ".js", ".ts", ".tsx"] #read only these files, coding files, not other things
 
@@ -31,6 +32,30 @@ def scan_files(directory):
                     print(f"Could not read {filepath}: {e}")
     return chunks
 
+def search(query, chunks, embeddings, top_k=3):
+    # convert user query into vectors
+    query_vector = model.encode([query])[0]
+
+    #compare query vector to every file/chunk vector
+    scores = np.dot(embeddings, query_vector) / (
+        np.linalg.norm(embeddings, axis=1) * 
+        np.linalg.norm(query_vector)
+    )
+
+    # get indexes of best search 
+    best_indexes = np.argsort(scores)[::-1][:top_k]
+
+    # return best matching files/chunks
+    results = []
+
+    for index in best_indexes:
+        results.append({
+            "score": scores[index],
+            "file": chunks[index]["file"],
+            "content":chunks[index]["text"]
+        })
+    return results
+
 
 if __name__ == "__main__": # run if executed directly 
     if len(sys.argv) < 2:
@@ -55,6 +80,23 @@ if __name__ == "__main__": # run if executed directly
     print(embeddings[0]) # prints first embedding vectors
 
     print(f"\nFound {len(chunks)} supported files:\n") # prints number of files found
+
+    print('Ready!')
+
+    while True:
+        query = input("\nSearch your code: ")
+
+        if query.lower() == "exit":
+            break
+            
+        results = search(query, chunks, embeddings)
+
+        for result in results:
+            print("\n--- MATCH ---")
+            print("File:", result["file"])
+            print("Score:", result["score"])
+
+            print(result["content"][:500])
 
     for chunk in chunks:
         print(chunk["file"]) # prints file path 
