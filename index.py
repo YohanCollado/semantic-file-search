@@ -28,8 +28,8 @@ def scan_files(directory):
     return chunks
 
 
-if __name__ == "__main": # run if executed directly 
-    if len(sys.args) < 2:
+if __name__ == "__main__": # run if executed directly 
+    if len(sys.argv) < 2:
         print("Usage: python index.py <folder_payh>")
         sys.exit(1)
         # if user forgets the folder path this it catches that
@@ -41,4 +41,4 @@ if __name__ == "__main": # run if executed directly
     print(f"\nFound{len(chunks)} supported files:\n") # prints number of files found
 
     for chunk in chunks:
-        print(chunk["files"]) # prints file path 
+        print(chunk["file"]) # prints file path 
